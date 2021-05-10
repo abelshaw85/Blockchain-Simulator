@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!blockchain-simulator.jar
 *.war
 *.nar
 *.ear
