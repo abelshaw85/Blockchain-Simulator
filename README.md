@@ -8,4 +8,5 @@ The Blockchain implements the following features:
 Transactions are sent as signed messages, and private keys are written as text files locally. Once the encrypted message reaches the blockchain, it is decrypted using the private key and added to the block.
 
 # How to use
-Simply run the Main class and the 
+Simply run the Main class and enter how many blocks you want to mine. It is recommended you keep this number relatively small (between 5-15 or so), but this varies upon your CPU - a CPU with more cores will allow the miners to work concurrently, and therefore will find the blocks faster. 
+Note it may take several seconds or even minutes as the N number increases.
