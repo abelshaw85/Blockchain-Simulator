@@ -25,7 +25,8 @@ public class Transaction {
 
     @Override
     public String toString() {
-        //if sender is null, this was issued by the chain for mining a block successfully
+    	// Transactions can either be send as Blockchain => miner, or miner => other miner
+        // If sender is null, this was issued by the Blockchain for mining a block successfully (and therefore there is no sender)
         if (sender == null) {
             return receiver.getName() + " gets " + this.amount + "VC";
         }

@@ -11,20 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
-Original code from: https://mkyong.com/java/java-digital-signatures-example/
+	Original code from: https://mkyong.com/java/java-digital-signatures-example/
  */
 public class Message {
     final private List<byte[]> list;
 
-    //The constructor of Message class builds the list that will be written to the file.
-    //The list consists of the message and the signature.
+    // The constructor of Message class builds the list that will be written to the file.
+    // The list consists of the message and the signature.
     public Message(String data, String keyFile) {
         list = new ArrayList<>();
         list.add(data.getBytes());
         list.add(sign(data, keyFile));
     }
 
-    //The method that signs the data using the private key that is stored in keyFile path
+    // The method that signs the data using the private key that is stored in keyFile path
     public byte[] sign(String data, String keyFile) {
         try {
             Signature rsa = Signature.getInstance("SHA1withRSA");
@@ -37,7 +37,7 @@ public class Message {
         return new byte[0];
     }
 
-    //Method to retrieve the Private Key from a file
+    // Method to retrieve the Private Key from a file
     public PrivateKey getPrivate(String filename) throws Exception {
         byte[] keyBytes = Files.readAllBytes(new File(filename).toPath());
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
@@ -45,7 +45,7 @@ public class Message {
         return kf.generatePrivate(spec);
     }
 
-    //Method to write the List of byte[] to a file
+    // Method to write the List of byte[] to a file
     public void writeToFile(String filename) {
         try {
             File f = new File(filename);

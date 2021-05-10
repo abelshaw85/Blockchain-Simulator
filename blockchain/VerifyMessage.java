@@ -7,19 +7,18 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
 /*
-Original code from: https://mkyong.com/java/java-digital-signatures-example/
+	Original code from: https://mkyong.com/java/java-digital-signatures-example/
  */
 public class VerifyMessage {
     private String verifiedMessage;
 
-    //The constructor of VerifyMessage class retrieves the byte arrays from the File
-    //and prints the message only if the signature is verified.
+    // The constructor of VerifyMessage class retrieves the byte arrays from the File
+    // and prints the message only if the signature is verified.
     public VerifyMessage(String filename, String keyFile) {
-        try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+        	
+            @SuppressWarnings("unchecked")
             List<byte[]> list = (List<byte[]>) in.readObject();
-            in.close();
-
             if (verifySignature(list.get(0), list.get(1), keyFile)) {
                 this.verifiedMessage = new String(list.get(0));
             } else {
@@ -34,8 +33,8 @@ public class VerifyMessage {
         return this.verifiedMessage;
     }
 
-    //Method for signature verification that initializes with the Public Key,
-    //updates the data to be verified and then verifies them using the signature
+    // Method for signature verification that initializes with the Public Key,
+    // updates the data to be verified and then verifies them using the signature
     private boolean verifySignature(byte[] data, byte[] signature, String keyFile) {
         try {
             Signature sig = Signature.getInstance("SHA1withRSA");
@@ -48,7 +47,7 @@ public class VerifyMessage {
         return false;
     }
 
-    //Method to retrieve the Public Key from a file
+    // Method to retrieve the Public Key from a file
     public PublicKey getPublic(String filename) {
         try {
             byte[] keyBytes = Files.readAllBytes(new File(filename).toPath());

@@ -31,9 +31,12 @@ public class Miner implements Runnable {
         while (blockchain.isAcceptingNewBlocks()) {
             Random random = new Random();
             int magicNumber = random.nextInt();
+            // We create a new 128 character hash using Sha256 and all the block's data.
             String hash = StringUtil.applySha256(blockId + timeStamp + previousHash + magicNumber);
+            // Check if the hash has the correct number of leading 0's
             Matcher matcher = pattern.matcher(hash);
             if (matcher.matches()) {
+            	// We try to add the block to our blockchain.
                 long secondsToGenerate = (new Date().getTime() - timeStamp) / 1000;
                 blockchain.addBlock(blockId, this, timeStamp, hash, previousHash, magicNumber, secondsToGenerate);
                 break;
@@ -46,8 +49,9 @@ public class Miner implements Runnable {
             Random random = new Random();
             // 50% chance they will try and spend coins
             if (random.nextInt(2) > 0) {
-                //sets a random amount of coins to spend
+                // Sets a random amount of coins to spend
                 int amountToSpend = random.nextInt(this.virtualCoins + 1);
+                // Get a random miner that differs from the current miner
                 Miner minerToGift = blockchain.getRandomMiner(this.id);
                 if (minerToGift == null) {
                     return;

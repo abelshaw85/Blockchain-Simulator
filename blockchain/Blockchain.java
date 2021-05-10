@@ -7,45 +7,68 @@ import java.util.Objects;
 import java.util.Random;
 
 public class Blockchain implements Serializable {
-    private volatile List<Block> chain;
-    private int numberOfZeroes = 0;
-    private static final long serialVersionUID = 1L;
-    final private int maxSize;
+	private static final long serialVersionUID = 1L;
+	
+    final private List<Block> chain;
     final private List<Transaction> transactions;
     final private List<Miner> miners;
+    
+    final private int maxSize;
+    private int numberOfZeroes = 0;
     private int startIndex = 0;
+    // Values used to decide whether to increase or decrease the magic number
+    private final int reducingValue = 10;
+    private final int increasingValue = 5;
 
     public Blockchain(int maxSize, List<Miner> miners) {
-        this.chain = new ArrayList();
+        this.chain = new ArrayList<Block>();
         this.maxSize = maxSize;
-        this.transactions = new ArrayList();
+        this.transactions = new ArrayList<Transaction>();
         this.miners = miners;
     }
 
-    public synchronized void addBlock(int id, Miner miner, long timeStamp, String hash, String previousHash, int magicNumber,
-                                      long secondsToGenerate) {
+    // Miner passes in the values it wants for the new block.
+    public synchronized void addBlock(int id, Miner miner, 
+							    		long timeStamp, String hash, 
+							    		String previousHash, 
+							    		int magicNumber,    
+							    		long secondsToGenerate) {
         try {
             Block previousBlock = this.chain.isEmpty() ? null : this.chain.get(this.chain.size() - 1);
 
+            // If this is the first block in the chain, we accept it
+            // Otherwise we check that the hash data is correct (the previous hash matches the previous block, and that the magic number is correct)
             if (this.chain.size() == 0 ||
-                    (id == Objects.requireNonNull(previousBlock).getId() + 1 && previousHash.equals(getPreviousHash())
-                    && zeroHashCheck(hash))) {
+                    (id == Objects.requireNonNull(previousBlock).getId() + 1 && previousHash.equals(getPreviousHash()) && zeroHashCheck(hash))) {
+            	System.out.println(">> Adding Block... ");
                 int previousN = this.numberOfZeroes;
-                int newN = manageNumberOfSeconds(secondsToGenerate);
-                Block newBlock = new Block(id, miner, timeStamp, hash, previousHash, magicNumber, secondsToGenerate,
-                        previousN, newN, this.getMessages());
+                // Either increases or decreases the magic number depending on how long it took to mine the block.
+                numberOfZeroes = manageNumberOfSeconds(secondsToGenerate);
+                Block newBlock = new Block(
+                		id, 
+                		miner, 
+                		timeStamp, 
+                		hash, 
+                		previousHash, 
+                		magicNumber, 
+                		secondsToGenerate,
+                        previousN, 
+                        numberOfZeroes, 
+                        this.getMessages());
                 this.chain.add(newBlock);
-                //Gift winning miner 100 coins
+                
+                // Gift winning miner 100 coins
                 miner.receiveCoins(100);
                 this.transactions.add(new Transaction(null, miner, 100));
+                System.out.println(">> Block added! Number of blocks: " + this.getSize() + "/" + this.maxSize);
             }
-
         } catch (Exception e) {
             System.out.println("Add Block Error: " + e.getLocalizedMessage());
         }
     }
 
-    //Gets a random miner that is NOT the same as the requesting miner
+    // Gets a random miner that is NOT the same as the requesting miner
+    // This is used to simulate a miner donating coins to fellow miners
     public synchronized Miner getRandomMiner(int idOfSender) {
         if (this.miners.size() > 1) {
             while (true) {
@@ -60,7 +83,7 @@ public class Blockchain implements Serializable {
         return null;
     }
 
-    public Miner getMinerById(int id) {
+    private Miner getMinerById(int id) {
         return this.miners.stream().filter(miner -> miner.getId() == id).findFirst().orElse(null);
     }
 
@@ -81,12 +104,12 @@ public class Blockchain implements Serializable {
     }
 
     public synchronized boolean verifyTransactionIsPossible(Miner sender, int amount) {
-        int senderAmount = 100; //initial miner coins
+        int senderAmount = 100; // Initial miner coins
 
         for (Transaction trans: this.transactions) {
-            if (trans.getReceiver() == sender) { //if the sender received coins previously
+            if (trans.getReceiver() == sender) { // If the sender received coins previously
                 senderAmount += trans.getAmount();
-            } else if (trans.getSender() == sender) { //if the sender spent coins previously
+            } else if (trans.getSender() == sender) { // If the sender spent coins previously
                 senderAmount -= trans.getAmount();
             }
         }
@@ -100,7 +123,7 @@ public class Blockchain implements Serializable {
         }
         StringBuilder sb = new StringBuilder();
         for (int i = startIndex; i < this.transactions.size(); i++) {
-            //only include transactions that are between other miners and not gifts from successful mining
+            // Only include transactions that are between other miners and not gifts from successful mining
             if (this.transactions.get(i).getSender() != null) {
                 sb.append("\n");
                 sb.append(this.transactions.get(i));
@@ -110,16 +133,18 @@ public class Blockchain implements Serializable {
         return sb.toString();
     }
 
-    //Increases or decreases how many 0's must be found in the magic number
-    //Commented code has been removed for testing, currently keeps N at 0
+    // Increases or decreases how many 0's must be found in the magic number
+    // Commented code has been removed for testing, currently keeps N at 0
     private synchronized int manageNumberOfSeconds(long secondsToGenerate) {
-        if (secondsToGenerate > 60 && numberOfZeroes > 0) {
-            //return --this.numberOfZeroes;
-            return this.numberOfZeroes;
-        } else if (secondsToGenerate < 10) {
-            //return ++this.numberOfZeroes;
-            return this.numberOfZeroes;
+    	System.out.print(">> Time to generate: " + secondsToGenerate + " seconds, ");
+        if (secondsToGenerate > reducingValue && numberOfZeroes > 0) {
+        	System.out.println("reducing magic number...");
+            return --this.numberOfZeroes;
+        } else if (secondsToGenerate < increasingValue) {
+        	System.out.println("increasing magic number...");
+            return ++this.numberOfZeroes;
         }
+        System.out.println("no change to magic number.");
         return this.numberOfZeroes;
     }
 
@@ -131,14 +156,14 @@ public class Blockchain implements Serializable {
         return this.chain.size();
     }
 
-    public synchronized String getPreviousHash() {
+    public String getPreviousHash() {
         if (this.chain.isEmpty()) {
             return "0";
         }
         return this.chain.get(this.chain.size() - 1).getHash();
     }
 
-    private synchronized boolean zeroHashCheck(String hash) {
+    private boolean zeroHashCheck(String hash) {
         String zeroesRegex = String.format("0{%d}[1-9A-Za-z]\\w+", numberOfZeroes);
         return hash.matches(zeroesRegex);
     }
@@ -147,6 +172,7 @@ public class Blockchain implements Serializable {
         return this.chain.size() < this.maxSize;
     }
 
+    // Pass through chain and ensure all blocks are valid!
     public boolean validate() {
         if (this.chain.isEmpty()) {
             return false;

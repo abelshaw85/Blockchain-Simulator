@@ -2,6 +2,7 @@ package blockchain;
 
 import java.io.*;
 
+// General purpose Serialisation class for fetching/writing serialised data.
 public class SerializeUtils {
     public static void serialize(Object obj, String fileName) {
         File file = new File(fileName);

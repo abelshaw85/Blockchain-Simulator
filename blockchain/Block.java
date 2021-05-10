@@ -3,7 +3,8 @@ package blockchain;
 import java.io.Serializable;
 
 public class Block implements Serializable {
-    final private int id;
+	final private static long serialVersionUID = 1L;
+	final private int id;
     final private Miner miner;
     final private long timeStamp;
     final private String hash;
@@ -13,7 +14,6 @@ public class Block implements Serializable {
     final private String blockData;
     final private int previousN;
     final private int newN;
-
 
     public Block(int id, Miner miner, long timeStamp, String hash, String previousHash, int magicNumber,
                  long secondsToGenerate, int previousN, int newN, String blockData) {
