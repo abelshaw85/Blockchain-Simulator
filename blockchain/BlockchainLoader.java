@@ -7,8 +7,8 @@ public class BlockchainLoader {
     final static private String path = "Blockchain Files/blockchain.data";
 
     // To limit our runtime, we pass in how many blocks we want to generate.
-    public static Blockchain getBlockchain(List<Miner> miners) {
-        return new Blockchain(15, miners);
+    public static Blockchain getBlockchain(List<Miner> miners, int blocksToMine) {
+        return new Blockchain(blocksToMine, miners);
     }
 
     public static Blockchain loadBlockchain(List<Miner> miners) {
